@@ -1,0 +1,116 @@
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+-- 1. OWNER CONFIG
+local Player = game.Players.LocalPlayer
+local IsOwner = (Player.Name == "sussybak995696") 
+local UserRank = IsOwner and "Owner 👑" or "Member"
+
+-- Only Owners skip the Key Menu
+local UseKeySystem = not IsOwner
+
+-- 2. LOWER-POSITIONED GET KEY BUTTON
+local function CreateMobileGetKey()
+    local GetKeyGui = Instance.new("ScreenGui", game.CoreGui)
+    GetKeyGui.Name = "GetKeySystem"
+    
+    local Button = Instance.new("TextButton", GetKeyGui)
+    Button.Size = UDim2.new(0, 180, 0, 40)
+    Button.Position = UDim2.new(0.5, -90, 0.75, 0) -- Bottom-middle
+    Button.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+    Button.Text = "GET KEY (COPY LINK)"
+    Button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Button.Font = Enum.Font.GothamBold
+    Button.TextSize = 14
+    Button.ZIndex = 10
+    
+    local Corner = Instance.new("UICorner", Button)
+    Corner.CornerRadius = UDim.new(0, 8)
+    
+    local Stroke = Instance.new("UIStroke", Button)
+    Stroke.Color = Color3.fromRGB(0, 255, 120) 
+    Stroke.Thickness = 2
+
+    Button.MouseButton1Click:Connect(function()
+        setclipboard("https://discord.gg/7gb9u25KjN")
+        Button.Text = "COPIED TO CLIPBOARD!"
+        task.wait(2)
+        Button.Text = "GET KEY (COPY LINK)"
+    end)
+    
+    task.spawn(function()
+        repeat task.wait(0.5) until _G.HubLoaded == true
+        GetKeyGui:Destroy()
+    end)
+end
+
+CreateMobileGetKey()
+
+-- 3. CREATE WINDOW
+local Window = Rayfield:CreateWindow({
+   Name = "ONE TAP HUB | v2.0",
+   LoadingTitle = "by Roy aich",
+   LoadingSubtitle = "Premium Loader",
+   ConfigurationSaving = { Enabled = false },
+   KeySystem = UseKeySystem, 
+   KeySettings = {
+      Title = "One Tap Hub | Security",
+      Subtitle = "Key System",
+      Note = "Check the button at the bottom!", 
+      FileName = "OneTapKey",
+      SaveKey = true,
+      GrabKeyFromSite = false,
+      Key = {"OT-X92-K5P-R7B"} -- THE NEW HARD KEY
+   }
+})
+
+-- 4. TABS & CONTENT
+local Home = Window:CreateTab("Home", 4483362458) 
+Home:CreateSection("User Profile")
+Home:CreateLabel("Welcome back, " .. Player.Name) 
+Home:CreateLabel("Rank: " .. UserRank)
+
+local Combat = Window:CreateTab("Combat", 4483362458) 
+Combat:CreateToggle({
+   Name = "Enable Aimbot",
+   CurrentValue = false,
+   Callback = function(Value) getgenv().Aimbot = Value end
+})
+
+local Visuals = Window:CreateTab("Visuals", 4483362458) 
+Visuals:CreateToggle({
+   Name = "Highlight Players",
+   CurrentValue = false,
+   Callback = function(Value) getgenv().Highlights = Value end
+})
+
+_G.HubLoaded = true 
+
+-- 5. AIMBOT ENGINE (100 RADIUS)
+local Camera = workspace.CurrentCamera
+getgenv().AimbotRadius = 100 
+
+game:GetService("RunService").RenderStepped:Connect(function()
+    if not getgenv().Aimbot and not getgenv().Highlights then return end
+    local ScreenCenter = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
+    
+    for _, v in pairs(game.Players:GetPlayers()) do
+        if v ~= Player and v.Character and v.Character:FindFirstChild("Head") then
+            if getgenv().Highlights then
+                if not v.Character:FindFirstChild("Highlight") then Instance.new("Highlight", v.Character) end
+            else
+                if v.Character:FindFirstChild("Highlight") then v.Character.Highlight:Destroy() end
+            end
+            if getgenv().Aimbot then
+                local Head = v.Character.Head
+                local Pos, OnScreen = Camera:WorldToViewportPoint(Head.Position)
+                if OnScreen then
+                    local MouseDist = (Vector2.new(Pos.X, Pos.Y) - ScreenCenter).Magnitude
+                    if MouseDist <= getgenv().AimbotRadius then
+                        local parts = Camera:GetPartsObscuringTarget({Head.Position}, {Player.Character, v.Character})
+                        if #parts == 0 then Camera.CFrame = CFrame.new(Camera.CFrame.Position, Head.Position) end
+                    end
+                end
+            end
+        end
+    end
+end)

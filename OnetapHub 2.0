@@ -1,38 +1,50 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
--- 1. OWNER CONFIG
+-- 1. STAFF CONFIG
 local Player = game.Players.LocalPlayer
-local IsOwner = (Player.Name == "sussybak995696") 
-local UserRank = IsOwner and "Owner 👑" or "Member"
+local Name = Player.Name
 
--- Only Owners skip the Key Menu
-local UseKeySystem = not IsOwner
+-- ADVERTISER LIST
+local Advertisers = {"oweniscertified"} 
 
--- 2. LOWER-POSITIONED GET KEY BUTTON
+local IsOwner = (Name == "sussybak995696")
+local IsAdvertiser = table.find(Advertisers, Name)
+
+-- Rank Logic
+local UserRank = "Member"
+if IsOwner then 
+    UserRank = "Owner 👑" 
+elseif IsAdvertiser then 
+    UserRank = "Advertiser 📢" 
+end
+
+-- BYPASS LOGIC: Staff skip the key system
+local UseKeySystem = true
+if IsOwner or IsAdvertiser then
+    UseKeySystem = false
+end
+
+-- 2. GET KEY BUTTON (BOTTOM)
 local function CreateMobileGetKey()
+    if not UseKeySystem then return end 
     local GetKeyGui = Instance.new("ScreenGui", game.CoreGui)
-    GetKeyGui.Name = "GetKeySystem"
-    
     local Button = Instance.new("TextButton", GetKeyGui)
     Button.Size = UDim2.new(0, 180, 0, 40)
-    Button.Position = UDim2.new(0.5, -90, 0.75, 0) -- Bottom-middle
+    Button.Position = UDim2.new(0.5, -90, 0.75, 0) 
     Button.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
     Button.Text = "GET KEY (COPY LINK)"
     Button.TextColor3 = Color3.fromRGB(255, 255, 255)
     Button.Font = Enum.Font.GothamBold
     Button.TextSize = 14
-    Button.ZIndex = 10
-    
     local Corner = Instance.new("UICorner", Button)
     Corner.CornerRadius = UDim.new(0, 8)
-    
     local Stroke = Instance.new("UIStroke", Button)
     Stroke.Color = Color3.fromRGB(0, 255, 120) 
     Stroke.Thickness = 2
-
+    
     Button.MouseButton1Click:Connect(function()
         setclipboard("https://discord.gg/7gb9u25KjN")
-        Button.Text = "COPIED TO CLIPBOARD!"
+        Button.Text = "COPIED!"
         task.wait(2)
         Button.Text = "GET KEY (COPY LINK)"
     end)
@@ -42,7 +54,6 @@ local function CreateMobileGetKey()
         GetKeyGui:Destroy()
     end)
 end
-
 CreateMobileGetKey()
 
 -- 3. CREATE WINDOW
@@ -55,18 +66,18 @@ local Window = Rayfield:CreateWindow({
    KeySettings = {
       Title = "One Tap Hub | Security",
       Subtitle = "Key System",
-      Note = "Check the button at the bottom!", 
+      Note = "", 
       FileName = "OneTapKey",
       SaveKey = true,
       GrabKeyFromSite = false,
-      Key = {"OT-X92-K5P-R7B"} -- THE NEW HARD KEY
+      Key = {"OT-X92-K5P-R7B"} 
    }
 })
 
--- 4. TABS & CONTENT
+-- 4. TABS
 local Home = Window:CreateTab("Home", 4483362458) 
 Home:CreateSection("User Profile")
-Home:CreateLabel("Welcome back, " .. Player.Name) 
+Home:CreateLabel("Welcome back, " .. Name) 
 Home:CreateLabel("Rank: " .. UserRank)
 
 local Combat = Window:CreateTab("Combat", 4483362458) 
@@ -95,11 +106,13 @@ game:GetService("RunService").RenderStepped:Connect(function()
     
     for _, v in pairs(game.Players:GetPlayers()) do
         if v ~= Player and v.Character and v.Character:FindFirstChild("Head") then
+            -- ESP
             if getgenv().Highlights then
                 if not v.Character:FindFirstChild("Highlight") then Instance.new("Highlight", v.Character) end
             else
                 if v.Character:FindFirstChild("Highlight") then v.Character.Highlight:Destroy() end
             end
+            -- AIMBOT
             if getgenv().Aimbot then
                 local Head = v.Character.Head
                 local Pos, OnScreen = Camera:WorldToViewportPoint(Head.Position)

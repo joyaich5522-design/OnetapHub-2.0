@@ -1,6 +1,6 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
--- Staff Bypass Logic (Case-Insensitive)
+-- [[ STAFF BYPASS ]]
 local Player = game.Players.LocalPlayer
 local PlayerNameLower = Player.Name:lower()
 local IsStaff = false
@@ -8,7 +8,7 @@ local MyRank = "User"
 
 local StaffList = {
     ["sussybak995696"] = "Owner 👑",
-    ["oweniscertified"] = "Advertiser 📢"
+    ["oweniscertified"] = "Advertiser 📢" 
 }
 
 if StaffList[PlayerNameLower] then
@@ -16,7 +16,7 @@ if StaffList[PlayerNameLower] then
     MyRank = StaffList[PlayerNameLower]
 end
 
--- Window Setup
+-- [[ WINDOW SETUP ]]
 local Window = Rayfield:CreateWindow({
    Name = "ONE TAP HUB | v2.0",
    LoadingTitle = "Loading One Tap Hub...",
@@ -26,33 +26,50 @@ local Window = Rayfield:CreateWindow({
       FolderName = "OneTapHub",
       FileName = "Config"
    },
-   KeySystem = not IsStaff, -- Bypasses for staff
+   Discord = {
+      Enabled = true,
+      Invite = "7gb9u25KjN", -- Your verified link
+      RememberJoins = true 
+   },
+   KeySystem = not IsStaff,
    KeySettings = {
       Title = "One Tap Hub | Key System",
-      Subtitle = "Enter the Permanent Key",
-      Note = "Join Discord for the Permanent Key!",
+      Subtitle = "Enter the Key",
+      Note = "Join Discord for the Key!",
       FileName = "OneTapKey",
-      SaveKey = true, -- Saves key to device
+      SaveKey = true,
       GrabKeyFromSite = false,
-      Key = {"OT-X92-K5P-R7B"} -- One simple permanent key
+      Key = {"OT-X92-K5P-R7B"} 
    }
 })
 
--- Home Tab
+-- [[ TABS ]]
 local HomeTab = Window:CreateTab("Home", 4483362458)
+local CombatTab = Window:CreateTab("Combat", 4483362458)
+local VisualsTab = Window:CreateTab("Visuals", 4483362458)
+
+-- [[ HOME TAB ]]
 HomeTab:CreateSection("User Info")
-HomeTab:CreateLabel("Welcome back, " .. Player.Name)
+HomeTab:CreateLabel("Welcome, " .. Player.Name)
 HomeTab:CreateLabel("Rank: " .. MyRank)
 
--- Combat Tab
-local CombatTab = Window:CreateTab("Combat", 4483362458)
+HomeTab:CreateSection("Community")
+HomeTab:CreateButton({
+   Name = "Copy Discord Link",
+   Callback = function()
+      setclipboard("https://discord.gg/7gb9u25KjN")
+      Rayfield:Notify({Title = "Success!", Content = "Link copied to clipboard!", Duration = 3})
+   end,
+})
+
+-- [[ COMBAT TAB ]]
 CombatTab:CreateSection("Aimbot Settings")
 
 _G.AimbotEnabled = false
-_G.AimbotSmoothness = 10
+_G.AimbotSmoothness = 5
 
 CombatTab:CreateToggle({
-   Name = "Enable Aimbot (Wall Check)",
+   Name = "Aimbot (Wall Check)",
    CurrentValue = false,
    Callback = function(Value)
       _G.AimbotEnabled = Value
@@ -61,31 +78,31 @@ CombatTab:CreateToggle({
 
 CombatTab:CreateSlider({
    Name = "Aimbot Smoothness",
-   Range = {1, 20},
+   Range = {1, 10},
    Increment = 1,
-   CurrentValue = 10,
+   CurrentValue = 5,
    Callback = function(Value)
       _G.AimbotSmoothness = Value
    end,
 })
 
--- Visuals Tab
-local VisualsTab = Window:CreateTab("Visuals", 4483362458)
-VisualsTab:CreateSection("ESP Settings")
+-- [[ VISUALS TAB ]]
+VisualsTab:CreateSection("ESP")
 
 VisualsTab:CreateToggle({
-   Name = "Highlights ESP",
+   Name = "Neon Green Highlight",
    CurrentValue = false,
    Callback = function(Value)
       _G.ESPEnabled = Value
       while _G.ESPEnabled do
          for _, v in pairs(game.Players:GetPlayers()) do
             if v ~= Player and v.Character then
-               if not v.Character:FindFirstChild("Highlight") then
-                  local hl = Instance.new("Highlight", v.Character)
-                  hl.FillColor = Color3.fromRGB(0, 255, 0)
-                  hl.OutlineColor = Color3.fromRGB(255, 255, 255)
-               end
+               local hl = v.Character:FindFirstChild("Highlight") or Instance.new("Highlight", v.Character)
+               hl.FillColor = Color3.fromRGB(0, 255, 0)
+               hl.OutlineColor = Color3.fromRGB(255, 255, 255)
+               hl.FillTransparency = 0.4
+               hl.OutlineTransparency = 0
+               hl.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
             end
          end
          task.wait(1)
@@ -100,22 +117,25 @@ VisualsTab:CreateToggle({
    end,
 })
 
--- Aimbot Logic (Simple Version for [FPS] One Tap)
+-- [[ AIMBOT LOGIC WITH WALL CHECK ]]
 game:GetService("RunService").RenderStepped:Connect(function()
     if _G.AimbotEnabled then
         local Target = nil
         local ShortestDist = math.huge
         
         for _, v in pairs(game.Players:GetPlayers()) do
-            if v ~= Player and v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
+            if v ~= Player and v.Character and v.Character:FindFirstChild("HumanoidRootPart") and v.Character.Humanoid.Health > 0 then
                 local Pos, OnScreen = game.Workspace.CurrentCamera:WorldToViewportPoint(v.Character.HumanoidRootPart.Position)
                 if OnScreen then
                     local Mag = (Vector2.new(Pos.X, Pos.Y) - Vector2.new(game.Workspace.CurrentCamera.ViewportSize.X/2, game.Workspace.CurrentCamera.ViewportSize.Y/2)).Magnitude
                     if Mag < ShortestDist then
-                        -- Wall check
-                        local RayParam = RaycastParams.new()
-                        RayParam.FilterDescendantsInstances = {Player.Character}
-                        local Result = game.Workspace:Raycast(game.Workspace.CurrentCamera.CFrame.Position, (v.Character.HumanoidRootPart.Position - game.Workspace.CurrentCamera.CFrame.Position).Unit * 500, RayParam)
+                        -- Wall Check Logic
+                        local RayOrigin = game.Workspace.CurrentCamera.CFrame.Position
+                        local RayDir = (v.Character.HumanoidRootPart.Position - RayOrigin).Unit * 500
+                        local Params = RaycastParams.new()
+                        Params.FilterDescendantsInstances = {Player.Character, game.Workspace.CurrentCamera}
+                        Params.FilterType = Enum.RaycastFilterType.Exclude
+                        local Result = game.Workspace:Raycast(RayOrigin, RayDir, Params)
                         
                         if Result and Result.Instance:IsDescendantOf(v.Character) then
                             ShortestDist = Mag
@@ -125,13 +145,10 @@ game:GetService("RunService").RenderStepped:Connect(function()
                 end
             end
         end
-        
         if Target then
             local LookAt = CFrame.new(game.Workspace.CurrentCamera.CFrame.Position, Target.Position)
             game.Workspace.CurrentCamera.CFrame = game.Workspace.CurrentCamera.CFrame:Lerp(LookAt, 1/_G.AimbotSmoothness)
         end
     end
 end)
-
-Rayfield:Notify({Title = "One Tap Hub", Content = "Script Loaded Successfully!", Duration = 5})
 

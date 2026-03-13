@@ -42,7 +42,7 @@ local Window = Rayfield:CreateWindow({
       FileName = "OneTapKey",
       SaveKey = true,
       GrabKeyFromSite = false,
-      Key = {"1TAP-V6-99XQ-B24K"} 
+      Key = {"OT-X92-K5P-R7B"} 
    }
 })
 
